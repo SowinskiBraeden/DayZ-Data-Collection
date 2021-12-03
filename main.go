@@ -95,7 +95,7 @@ func getRawLogs() {
 	targetURL := data["data"].(map[string]interface{})["token"].(map[string]interface{})["url"].(string)
 
 	// Create the file
-	out, err := os.Create("logs.txt")
+	out, err := os.Create("logs.ADM")
 	if err != nil {
 		log.Fatal(err)
 	}
