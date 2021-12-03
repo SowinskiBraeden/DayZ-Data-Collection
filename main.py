@@ -17,7 +17,8 @@ logFlags = [
   "is unconscious",
   "killed by",
   ")Built ",
-	"folded Fence"
+	"folded Fence",
+  ")Player SurvivorBase"
 ]
 players = {}
 players['players'] = []

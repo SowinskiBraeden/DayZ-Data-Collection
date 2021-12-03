@@ -58,7 +58,7 @@ func getEnvVar(key string) string {
 	return os.Getenv(key)
 }
 
-var logFlags [9]string = [9]string{
+var logFlags [10]string = [10]string{
 	"killed by",
 	"disconnected",
 	") placed ",
@@ -68,6 +68,7 @@ var logFlags [9]string = [9]string{
 	"is unconscious",
 	")Built ",
 	"folded Fence",
+	")Player SurvivorBase",
 }
 
 // Download Raw Logs off Nitrado
