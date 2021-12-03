@@ -1,0 +1,9 @@
+# Logs
+logs.ADM
+clean.txt
+
+# Output
+players.json
+
+# Environment
+.env
