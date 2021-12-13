@@ -4,9 +4,17 @@ import json
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-AUTH_KEY = os.getenv('AUTH_KEY')
-SERVER_ID = os.getenv('SERVER_ID')
+# Check if on heroku
+debug = False
+if 'DYNO' not in os.environ: debug = True
+
+if debug:
+  load_dotenv()
+  AUTH_KEY = os.getenv('AUTH_KEY')
+  SERVER_ID = os.getenv('SERVER_ID')
+else:
+  AUTH_KEY = os.environ['auth_key']
+  SERVER_ID = os.environ['server_id']
 
 logFlags = [
   "disconnected",
@@ -17,8 +25,12 @@ logFlags = [
   "is unconscious",
   "killed by",
   ")Built ",
-	"folded Fence",
-  ")Player SurvivorBase"
+	") folded",
+  ")Player SurvivorBase",
+  ") died.",
+  ") committed suicide",
+  ")Dismantled",
+  ") bled"
 ]
 players = {}
 players['players'] = []
@@ -103,11 +115,46 @@ def collectPlayerData():
         # Logs new player data
         players['players'].append(query)
 
-  with open("players.json", "w") as playerJSON:
-    json.dump(players, playerJSON, ensure_ascii=False, indent=2)
 
+# Search Logs for Connected and Disconnected messages
+def activeStatus():
+  with open("logs.ADM", "r") as logs:
+    lines = logs.readlines()
+    for line in lines:
+      if "connected" in line.strip("\n") and "| Player" in line.strip("\n"): status = "Online"
+      elif "disconnected" in line.strip("\n") and "| Player" in line.strip("\n"): status = "Offline"
+        
+      # Get player ID
+      beginID = line.strip("\n").find('(id=')+4
+      endID = line.strip("\n").find(")")
+      playerID = line.strip("\n")[beginID:endID]
+
+      playerFoundAndUpdated = False
+      for i in range(len(players['players'])):
+        if players['players'][i]['playerID']==playerID:
+          players['players'][i]['connectionStatus'] = status
+          playerFoundAndUpdated = True
+      
+      if not playerFoundAndUpdated:
+        beginPlayer = 19 # Player names always start here
+        endPlayer = line.strip("\n").find('(')-2
+        playerName = line.strip("\n")[beginPlayer:endPlayer]
+        query = {
+          "gamertag": playerName,
+          "playerID": playerID,
+          "time": None,
+          "pos": [],
+          "posHistory": [],
+          "connectionStatus": "Online"
+        }
+        # Logs new player data
+        players["players"].append(query)
 
 if __name__ == '__main__':
-  # getRawLogs()
+  getRawLogs()
   cleanLogs()
   collectPlayerData()
+  activeStatus()
+
+  with open("players.json", "w") as playerJSON:
+    json.dump(players, playerJSON, ensure_ascii=False, indent=2)

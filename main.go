@@ -23,16 +23,19 @@ type PositionHistory struct {
 }
 
 type Query struct {
-	Gamertag   string
-	PlayerID   string
-	Time       string
-	Pos        [3]float64
-	PosHistory []PositionHistory
+	Gamertag         string
+	PlayerID         string
+	Time             string
+	Pos              [3]float64
+	PosHistory       []PositionHistory
+	connectionStatus string
 }
 
 type Players struct {
 	Players []Query
 }
+
+var players Players
 
 func substr(input string, start int, length int) string {
 	asRunes := []rune(input)
@@ -58,17 +61,21 @@ func getEnvVar(key string) string {
 	return os.Getenv(key)
 }
 
-var logFlags [10]string = [10]string{
-	"killed by",
+var logFlags [14]string = [14]string{
 	"disconnected",
 	") placed ",
-	"is connected",
+	"connected",
 	"hit by",
-	"regained consciousne",
+	"regained consciousnes",
 	"is unconscious",
+	"killed by",
 	")Built ",
-	"folded Fence",
+	") folded",
 	")Player SurvivorBase",
+	") died.",
+	") committed suicide",
+	")Dismantled",
+	") bled",
 }
 
 // Download Raw Logs off Nitrado
@@ -155,10 +162,8 @@ func cleanLogs() {
 	w.Flush()
 }
 
+// Collect
 func collectPlayerData() {
-	// players := make(map[string][]Query)
-	var players Players
-
 	file, err := os.Open("clean.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -222,14 +227,63 @@ func collectPlayerData() {
 			players.Players = append(players.Players, query)
 		}
 	}
+}
 
-	jsonFile, _ := json.MarshalIndent(players, "", " ")
+// Check raw logs for connected or disconnected messages
+func activeStatus() {
+	file, err := os.Open("logs.ADM")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
 
-	_ = ioutil.WriteFile("players.json", jsonFile, 0644)
+	sc := bufio.NewScanner(file)
+
+	for sc.Scan() {
+		if strings.Contains(sc.Text(), ` | Player "`) {
+			var status string
+			if strings.Contains(sc.Text(), "connected") {
+				status = "Online"
+			} else if strings.Contains(sc.Text(), "disconnected") {
+				status = "Offline"
+			}
+			// Get Player ID
+			beginID := strings.Index(sc.Text(), "(id=") + 4
+			endID := strings.Index(sc.Text(), "pos=<") - 1
+			playerID := substr(sc.Text(), beginID, (endID - beginID))
+
+			foundPlayerAndUpdated := false
+			for i := range players.Players {
+				if players.Players[i].PlayerID == playerID {
+					players.Players[i].connectionStatus = status
+					foundPlayerAndUpdated = true
+				}
+			}
+
+			if !foundPlayerAndUpdated {
+				// Get Player Gamertag
+				endPlayer := strings.Index(sc.Text(), `(`) - 2
+				playerName := substr(sc.Text(), 19, (endPlayer - 19))
+
+				var query Query
+				query.Gamertag = playerName
+				query.PlayerID = playerID
+				query.connectionStatus = status
+
+				// Logs new player data
+				players.Players = append(players.Players, query)
+			}
+		}
+	}
 }
 
 func main() {
 	getRawLogs()
 	cleanLogs()
 	collectPlayerData()
+	activeStatus()
+
+	jsonFile, _ := json.MarshalIndent(players, "", " ")
+
+	_ = ioutil.WriteFile("players.json", jsonFile, 0644)
 }
