@@ -25,15 +25,16 @@ logFlags = [
   "is unconscious",
   "killed by",
   ")Built ",
-	") folded",
+  ") folded",
   ")Player SurvivorBase",
   ") died.",
   ") committed suicide",
   ")Dismantled",
   ") bled"
 ]
-players = {}
-players['players'] = []
+players = {
+  'players': []
+}
 
 
 # Download Raw Logs off Nitrado
@@ -121,34 +122,41 @@ def activeStatus():
   with open("logs.ADM", "r") as logs:
     lines = logs.readlines()
     for line in lines:
-      if "connected" in line.strip("\n") and "| Player" in line.strip("\n"): status = "Online"
-      elif "disconnected" in line.strip("\n") and "| Player" in line.strip("\n"): status = "Offline"
-        
-      # Get player ID
-      beginID = line.strip("\n").find('(id=')+4
-      endID = line.strip("\n").find(")")
-      playerID = line.strip("\n")[beginID:endID]
+      status = ""
+      update = False
+      if "connected" in line.strip("\n") and "| Player" in line.strip("\n"):
+        status = "Online"
+        update = True
+      elif "disconnected" in line.strip("\n") and "| Player" in line.strip("\n"):
+        status = "Offline"
+        update = True
 
-      playerFoundAndUpdated = False
-      for i in range(len(players['players'])):
-        if players['players'][i]['playerID']==playerID:
-          players['players'][i]['connectionStatus'] = status
-          playerFoundAndUpdated = True
-      
-      if not playerFoundAndUpdated:
-        beginPlayer = 19 # Player names always start here
-        endPlayer = line.strip("\n").find('(')-2
-        playerName = line.strip("\n")[beginPlayer:endPlayer]
-        query = {
-          "gamertag": playerName,
-          "playerID": playerID,
-          "time": None,
-          "pos": [],
-          "posHistory": [],
-          "connectionStatus": "Online"
-        }
-        # Logs new player data
-        players["players"].append(query)
+      if update:
+        # Get player ID
+        beginID = line.strip("\n").find('(id=')+4
+        endID = line.strip("\n").find(")")
+        playerID = line.strip("\n")[beginID:endID]
+
+        playerFoundAndUpdated = False
+        for i in range(len(players['players'])):
+          if players['players'][i]['playerID']==playerID:
+            players['players'][i]['connectionStatus'] = status
+            playerFoundAndUpdated = True
+        
+        if not playerFoundAndUpdated:
+          beginPlayer = 19 # Player names always start here
+          endPlayer = line.strip("\n").find('is connect')-2
+          playerName = line.strip("\n")[beginPlayer:endPlayer]
+          query = {
+            "gamertag": playerName,
+            "playerID": playerID,
+            "time": None,
+            "pos": [],
+            "posHistory": [],
+            "connectionStatus": "Online"
+          }
+          # Logs new player data
+          players["players"].append(query)
 
 if __name__ == '__main__':
   getRawLogs()
