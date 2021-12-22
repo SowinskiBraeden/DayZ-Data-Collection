@@ -4,11 +4,9 @@ import json
 import os
 from dotenv import load_dotenv
 
-# Check if on heroku
-debug = False
-if 'DYNO' not in os.environ: debug = True
-
-if debug:
+# Check if on Heroku or local
+# and get respected env keys
+if 'DYNO' not in os.environ:
   load_dotenv()
   AUTH_KEY = os.getenv('AUTH_KEY')
   SERVER_ID = os.getenv('SERVER_ID')
