@@ -19,14 +19,14 @@ import (
 
 type PositionHistory struct {
 	Time string
-	Pos  [3]float64
+	Pos  []float64
 }
 
 type Query struct {
 	Gamertag         string
 	PlayerID         string
 	Time             string
-	Pos              [3]float64
+	Pos              []float64
 	PosHistory       []PositionHistory
 	connectionStatus string
 }
@@ -185,7 +185,7 @@ func collectPlayerData() {
 		beginPos := strings.Index(sc.Text(), "pos=<") + 5
 		endPos := len(sc.Text()) - 2
 		playerPos := strings.Split(substr(sc.Text(), beginPos, (endPos-beginPos)), ", ")
-		var posFloatArr [3]float64
+		var posFloatArr []float64
 		for i, pos := range playerPos {
 			f, err := strconv.ParseFloat(pos, 64)
 			if err != nil {
@@ -249,7 +249,7 @@ func activeStatus() {
 			}
 			// Get Player ID
 			beginID := strings.Index(sc.Text(), "(id=") + 4
-			endID := strings.Index(sc.Text(), "pos=<") - 1
+			endID := strings.Index(sc.Text(), ")")
 			playerID := substr(sc.Text(), beginID, (endID - beginID))
 
 			foundPlayerAndUpdated := false
@@ -262,8 +262,14 @@ func activeStatus() {
 
 			if !foundPlayerAndUpdated {
 				// Get Player Gamertag
-				endPlayer := strings.Index(sc.Text(), `(`) - 2
-				playerName := substr(sc.Text(), 19, (endPlayer - 19))
+				var playerName string
+				if strings.Contains(sc.Text(), "disconnected") {
+					endPlayer := strings.Index(sc.Text(), `(`) - 2
+					playerName = substr(sc.Text(), 19, (endPlayer - 19))
+				} else {
+					endPlayer := strings.Index(sc.Text(), `(`) - 15
+					playerName = substr(sc.Text(), 19, (endPlayer - 19))
+				}
 
 				var query Query
 				query.Gamertag = playerName

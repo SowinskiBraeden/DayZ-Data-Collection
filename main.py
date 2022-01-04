@@ -122,10 +122,10 @@ def activeStatus():
     for line in lines:
       status = ""
       update = False
-      if "connected" in line.strip("\n") and "| Player" in line.strip("\n"):
+      if "\" is connected" in line.strip("\n") and "| Player" in line.strip("\n"):
         status = "Online"
         update = True
-      elif "disconnected" in line.strip("\n") and "| Player" in line.strip("\n"):
+      elif ") has been disconnected" in line.strip("\n") and "| Player" in line.strip("\n"):
         status = "Offline"
         update = True
 
