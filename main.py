@@ -70,11 +70,12 @@ def collectPlayerData():
       pattern = re.escape(template)
       pattern = re.sub(r'\\\$(\w+)', r'(?P<\1>.*)', pattern)
       data = re.match(pattern, line)
+      if data is None: break
 
       query = {
         'gamertag': data.groupdict()['gamertag'],
         'playerID': data.groupdict()['playerID'],
-        'time': data.groupdict()['time'],
+        'time': data.groupdict()['time']+' EST',
         'pos': data.groupdict()['pos'],
         'posHistory': []
       }
