@@ -79,7 +79,7 @@ def collectPlayerData():
         'posHistory': []
       }
 
-      if len(players['players']==0): players['players'].append(query)
+      if len(players['players'])==0: players['players'].append(query)
       else:
         for i in range(len(players['players'])):
           if players['players'][i]['gamertag']==data.groupdict()['gamertag']:
