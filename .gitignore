@@ -7,3 +7,6 @@ players.json
 
 # Environment
 .env
+
+# Test
+test.py

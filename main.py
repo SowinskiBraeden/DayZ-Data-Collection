@@ -2,6 +2,7 @@ import requests
 import urllib
 import json
 import os
+import re
 from dotenv import load_dotenv
 
 # Check if on Heroku or local
@@ -14,6 +15,7 @@ else:
   AUTH_KEY = os.environ['auth_key']
   SERVER_ID = os.environ['server_id']
 
+template = '$time | Player "$gamertag" (id=$playerID pos=<$pos>)'
 logFlags = [
   "disconnected",
   ") placed ",
@@ -60,52 +62,37 @@ def cleanLogs():
         logs.write(line)
 
 
-# Generate Lost of player names and id's
+# Generate List of player names, id's and positions
 def collectPlayerData():
-  # Get player name
-  with open("clean.txt", "r") as logs:
+  with open('clean.txt', 'r') as logs:
     cleanLines = logs.readlines()
     for line in cleanLines:
-      beginPlayer = 19 # Player names always start here
-      endPlayer = line.strip("\n").find('(')-2
-      playerName = line.strip("\n")[beginPlayer:endPlayer]
-      
-      # Get player ID
-      beginID = line.strip("\n").find('(id=')+4
-      endID = line.strip("\n").find("pos=<")-1
-      playerID = line.strip("\n")[beginID:endID]
-      
-      # Get current player pos
-      beginPos = line.strip("\n").find("pos=<")+5
-      endPos = len(line.strip("\n"))-2
-      playerPos = line.strip("\n")[beginPos:endPos].split(", ")
-      for n in range(len(playerPos)): playerPos[n] = float(playerPos[n])
-
-      # Get Log Time
-      logTime = line.strip("\n")[0:8]+" EST"
+      pattern = re.escape(template)
+      pattern = re.sub(r'\\\$(\w+)', r'(?P<\1>.*)', pattern)
+      data = re.match(pattern, line)
 
       query = {
-        "gamertag": playerName,
-        "playerID": playerID,
-        "time": logTime,
-        "pos": playerPos,
-        "posHistory": []
+        'gamertag': data.groupdict()['gamertag'],
+        'playerID': data.groupdict()['playerID'],
+        'time': data.groupdict()['time'],
+        'pos': data.groupdict()['pos'],
+        'posHistory': []
       }
 
-      if len(players['players'])==0:
-        players['players'].append(query)
+      if len(players['players']==0): players['players'].append(query)
       else:
         for i in range(len(players['players'])):
-          if players['players'][i]['gamertag']==playerName:
-            # Updates Existing player data
-            for j in range(len(players["players"][i]["posHistory"])):
-              query["posHistory"].append({
-                "time": players['players'][i]['posHistory'][j]['time'],
-                "pos":  players['players'][i]['posHistory'][j]['pos']
+          if players['players'][i]['gamertag']==data.groupdict()['gamertag']:
+            # Updates existing player data
+            for j in range(len(players['players'][i]['posHistory'])):
+              query['posHistory'].append({
+                'time': players['players'][i]['posHistory'][j]['time'],
+                'pos': players['players'][i]['posHistory'][j]['pos']
               })
-            query["posHistory"].append({
-              "time": players['players'][i]['time'],
-              "pos":  players['players'][i]['pos']
+
+            query['posHistory'].append({
+              'time': players['players'][i]['time'],
+              'pos': players['players'][i]['pos']
             })
 
             players['players'].remove(players['players'][i])
