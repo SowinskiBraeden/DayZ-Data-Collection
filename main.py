@@ -76,7 +76,7 @@ def collectPlayerData():
         'gamertag': data.groupdict()['gamertag'],
         'playerID': data.groupdict()['playerID'],
         'time': data.groupdict()['time']+' EST',
-        'pos': data.groupdict()['pos'],
+        'pos': data.groupdict()['pos'].split(", "),
         'posHistory': []
       }
 
