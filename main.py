@@ -146,9 +146,9 @@ def activeStatus():
           players["players"].append(query)
 
 if __name__ == '__main__':
-  # getRawLogs()
-  # cleanLogs()
-  # collectPlayerData()
+  getRawLogs()
+  cleanLogs()
+  collectPlayerData()
   activeStatus()
 
   with open("players.json", "w") as playerJSON:
