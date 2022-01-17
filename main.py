@@ -118,21 +118,22 @@ def activeStatus():
         update = True
 
       if update:
-        # Get player ID
-        beginID = line.strip("\n").find('(id=')+4
-        endID = line.strip("\n").find(")")
-        playerID = line.strip("\n")[beginID:endID]
+        beginPlayer = 19 # Player names always start here
+        if status=="Online": endPlayer = line.strip("\n").find("\" is")
+        if status=="Offline": endPlayer = line.strip("\n").find("\"(id=")
+        playerName = line.strip("\n")[beginPlayer:endPlayer]
 
         playerFoundAndUpdated = False
         for i in range(len(players['players'])):
-          if players['players'][i]['playerID']==playerID:
+          if players['players'][i]['gamertag']==playerName:
             players['players'][i]['connectionStatus'] = status
             playerFoundAndUpdated = True
         
         if not playerFoundAndUpdated:
-          beginPlayer = 19 # Player names always start here
-          endPlayer = line.strip("\n").find('is connect')-2
-          playerName = line.strip("\n")[beginPlayer:endPlayer]
+          # Get player ID
+          beginID = line.strip("\n").find('(id=')+4
+          endID = line.strip("\n").find(")")
+          playerID = line.strip("\n")[beginID:endID]
           query = {
             "gamertag": playerName,
             "playerID": playerID,
@@ -145,9 +146,9 @@ def activeStatus():
           players["players"].append(query)
 
 if __name__ == '__main__':
-  getRawLogs()
-  cleanLogs()
-  collectPlayerData()
+  # getRawLogs()
+  # cleanLogs()
+  # collectPlayerData()
   activeStatus()
 
   with open("players.json", "w") as playerJSON:
