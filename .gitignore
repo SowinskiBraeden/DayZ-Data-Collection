@@ -1,9 +1,5 @@
-# Logs
-logs.ADM
-clean.txt
-
-# Output
-players.json
+# output
+output/*
 
 # Environment
 .env

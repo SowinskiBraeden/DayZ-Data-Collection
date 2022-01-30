@@ -103,7 +103,7 @@ func getRawLogs() {
 	targetURL := data["data"].(map[string]interface{})["token"].(map[string]interface{})["url"].(string)
 
 	// Create the file
-	out, err := os.Create("logs.ADM")
+	out, err := os.Create("./output/logs.ADM")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func getRawLogs() {
 
 // Convert Raw Logs into cleaned logs (only positional data logs)
 func cleanLogs() {
-	file, err := os.Open("logs.ADM")
+	file, err := os.Open("./output/logs.ADM")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func cleanLogs() {
 	sc := bufio.NewScanner(file)
 
 	// Create the file
-	out, err := os.Create("clean.txt")
+	out, err := os.Create("./output/clean.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -164,7 +164,7 @@ func cleanLogs() {
 
 // Collect
 func collectPlayerData() {
-	file, err := os.Open("clean.txt")
+	file, err := os.Open("./output/clean.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -231,7 +231,7 @@ func collectPlayerData() {
 
 // Check raw logs for connected or disconnected messages
 func activeStatus() {
-	file, err := os.Open("logs.ADM")
+	file, err := os.Open("./output/logs.ADM")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -291,5 +291,5 @@ func main() {
 
 	jsonFile, _ := json.MarshalIndent(players, "", " ")
 
-	_ = ioutil.WriteFile("players.json", jsonFile, 0644)
+	_ = ioutil.WriteFile("./output/players.json", jsonFile, 0644)
 }
